@@ -1,3 +1,214 @@
+# Mobile Portfolio Website Optimization
+
+The goal is to optimize a provided website with a number of optimization- and performance-related issues so that it achieves a target PageSpeed score  of 90 and runs at 60 frames per second.
+
+eliminated link to google fonts
+
+put all style information into the head of pizza.html. I eliminated any references from bootstrap-grid.css of anything not col-md-8 as they were not used, minified and appended the minified version of style.css and print.css
+
+optimized images by using loss-less compression. Resized pizzeria.jpg from unnecessarily large size.
+
+javascript:
+-reduced the number of times the keyword var is used by placing declared variables in comma separated list.
+-replaced querySelectorAll with getElementsByClassName
+-replaced querySelector with getElementsById
+-minified main.js to main.min.js
+
+
+### updatePositions
+
+This function moves the sliding background pizzas based on scroll position
+
+#### original
+
+* note use of document.querySelectorAll to obtain items
+* phase is calculated every time in loop
+
+```javascript
+function updatePositions() {
+  ...
+  var items = document.querySelectorAll('.mover');
+  for (var i = 0; i < items.length; i++) {
+    var phase = Math.sin((document.body.scrollTop / 1250) + (i % 5));
+    items[i].style.left = items[i].basicLeft + 100 * phase + 'px';
+  }
+  ...
+}
+```
+
+#### refactored
+
+* items now obtained via document.getElementsByClassName
+* minimized number of caculations
+* there are only 5 phases, calculate each just once and hold in phases array for quick access
+
+```javascript
+function updatePositions() {
+  ...
+  var i, phases = [],
+      scrollExtent = document.body.scrollTop / 1250,
+      items = document.getElementsByClassName('mover');
+
+  for (i = 0; i < 5; i++) {
+    phases.push(Math.sin(scrollExtent + (i % 5)));
+  }
+  for (i = 0; i < items.length; i++) {
+    items[i].style.left = items[i].basicLeft + 100 * phases[i%5] + 'px';
+  }
+  ...
+}
+```
+<p>&nbsp;</p>
+### DOMContentLoaded event listener
+Generates the sliding pizzas when the page loads.
+
+#### original
+
+* note 200 images will be used... more than needed to fill the viewport
+* document.querySelector is invoked every iteration of the loop
+* there is a fractional width specified for each image
+
+```javascript
+document.addEventListener('DOMContentLoaded', function() {
+  var cols = 8;
+  var s = 256;
+  for (var i = 0; i < 200; i++) {
+    var elem = document.createElement('img');
+    elem.className = 'mover';
+    elem.src = "images/pizza.png";
+    elem.style.height = "100px";
+    elem.style.width = "73.333px";
+    elem.basicLeft = (i % cols) * s;
+    elem.style.top = (Math.floor(i / cols) * s) + 'px';
+    document.querySelector("#movingPizzas1").appendChild(elem);
+  }
+  updatePositions();
+});
+```
+
+#### refactored
+
+* 4 rows of 8 columns of pizzas are visible - use 32 instead of 200
+* get container for the moving pizzas just once using document.getElementById
+* whole integer width makes it easier for browser to render image
+
+```javascript
+document.addEventListener('DOMContentLoaded', function() {
+  var i, elem, cols = 8, s = 256, numPizzas = 32,
+      moverContainer =  document.getElementById("movingPizzas1");
+  for (i = 0; i < numPizzas; i++) {
+    elem = document.createElement('img');
+    elem.className = 'mover';
+    elem.src = "images/pizza.png";
+    elem.style.height = "100px";
+    elem.style.width = "73px";
+    elem.basicLeft = (i % cols) * s;
+    elem.style.top = (Math.floor(i / cols) * s) + 'px';
+    moverContainer.appendChild(elem);
+  }
+  updatePositions();
+});
+```
+<p>&nbsp;</p>
+### resizePizzas
+resizePizzas(size) is called when the slider in the "Our Pizzas" section of the website moves.
+
+#### original
+* note use of document.querySelector and document.querySelectorAll
+* document.querySelectorAll invoked multiple times every iteration of loop in changePizzaSizes
+
+```javascript
+var resizePizzas = function(size) {
+  ...
+  function changeSliderLabel(size) {
+    switch(size) {
+      case "1":
+        document.querySelector("#pizzaSize").innerHTML = "Small";
+        return;
+      case "2":
+        document.querySelector("#pizzaSize").innerHTML = "Medium";
+        return;
+      case "3":
+        document.querySelector("#pizzaSize").innerHTML = "Large";
+        return;
+      default:
+        console.log("bug in changeSliderLabel");
+    }
+  }
+  ...
+  function determineDx (elem, size) {
+    var oldwidth = elem.offsetWidth;
+    var windowwidth = document.querySelector("#randomPizzas").offsetWidth;
+    var oldsize = oldwidth / windowwidth;
+    ...
+    var newsize = sizeSwitcher(size);
+    var dx = (newsize - oldsize) * windowwidth;
+
+    return dx;
+  }
+
+  function changePizzaSizes(size) {
+    for (var i = 0; i < document.querySelectorAll(".randomPizzaContainer").length; i++) {
+      var dx = determineDx(document.querySelectorAll(".randomPizzaContainer")[i], size);
+      var newwidth = (document.querySelectorAll(".randomPizzaContainer")[i].offsetWidth + dx) + 'px';
+      document.querySelectorAll(".randomPizzaContainer")[i].style.width = newwidth;
+    }
+  }
+  ...
+};
+```
+
+#### refactored
+* in helper function changeSliderLabel, used document.getElementById to get the slider label element (saving to a variable not a performance optimization, but easier to read)
+* in determineDx, minimized use of variables, replaced document.querySelector with document.getElementById
+* in changePizzaSizes obtained an array of elements before looping named pizzaContainers using document.getElementsByClassName
+* calculate new width just once
+* access each element by looping through pizzaContainers to assign the new width
+
+```javascript
+var resizePizzas = function(size) {
+  ...
+  function changeSliderLabel(size) {
+    var sliderLabel = document.getElementById("pizzaSize");
+    switch(size) {
+      case "1":
+        sliderLabel.innerHTML = "Small";
+        return;
+      case "2":
+        sliderLabel.innerHTML = "Medium";
+        return;
+      case "3":
+        sliderLabel.innerHTML = "Large";
+        return;
+      default:
+        console.log("bug in changeSliderLabel");
+    }
+  }
+  ...
+  function determineDx (elem, size) {
+     var windowwidth = document.getElementById("randomPizzas").offsetWidth,
+        oldsize = elem.offsetWidth / windowwidth;
+    ...
+    var newsize = sizeSwitcher(size),
+        dx = (newsize - oldsize) * windowwidth;
+    return dx;
+  }
+
+  function changePizzaSizes(size) {
+    var i = 0,
+        pizzaContainers =  document.getElementsByClassName("randomPizzaContainer"),
+        newwidth = (pizzaContainers[i].offsetWidth + determineDx(pizzaContainers[i], size)) + 'px';
+    for (i; i < pizzaContainers.length; i++) {
+      pizzaContainers[i].style.width = newwidth;
+    }
+  }
+  ...
+};
+```
+
+<p>&nbsp;</p>
+# Project Description
+
 ## Website Performance Optimization portfolio project
 
 Your challenge, if you wish to accept it (and we sure hope you will), is to optimize this online portfolio for speed! In particular, optimize the critical rendering path and make this page render as quickly as possible by applying the techniques you've picked up in the [Critical Rendering Path course](https://www.udacity.com/course/ud884).
@@ -32,7 +243,7 @@ Profile, optimize, measure... and then lather, rinse, and repeat. Good luck!
 
 ####Part 2: Optimize Frames per Second in pizza.html
 
-To optimize views/pizza.html, you will need to modify views/js/main.js until your frames per second rate is 60 fps or higher. You will find instructive comments in main.js. 
+To optimize views/pizza.html, you will need to modify views/js/main.js until your frames per second rate is 60 fps or higher. You will find instructive comments in main.js.
 
 You might find the FPS Counter/HUD Display useful in Chrome developer tools described here: [Chrome Dev Tools tips-and-tricks](https://developer.chrome.com/devtools/docs/tips-and-tricks).
 
