@@ -36,7 +36,7 @@ My PageSpeed Insights Speed scores:
     <tr>
       <td>pizza.html</td>
       <td>97/100</td>
-      <td>100/100</td>
+      <td>98/100</td>
     </tr>
   </tbody>
 </table>
