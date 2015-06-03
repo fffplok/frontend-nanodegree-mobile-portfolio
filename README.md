@@ -1,27 +1,77 @@
 # Mobile Portfolio Website Optimization
 
-The goal is to optimize a provided website with a number of optimization- and performance-related issues so that it achieves a target PageSpeed score  of 90 and runs at 60 frames per second.
+The goal is to optimize a provided website with a number of optimization- and performance-related issues so that it achieves a target PageSpeed score of 90 and runs at 60 frames per second.
 
-eliminated link to google fonts
+My PageSpeed Insights Speed scores:
 
-put all style information into the head of pizza.html. I eliminated any references from bootstrap-grid.css of anything not col-md-8 as they were not used, minified and appended the minified version of style.css and print.css
+<table>
+  <thead>
+    <tr>
+      <th>page</th>
+      <th>mobile</th>
+      <th>desktop</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>index.html</td>
+      <td>95/100</td>
+      <td>92/100</td>
+    </tr>
+    <tr>
+      <td>project-2048.html</td>
+      <td>93/100</td>
+      <td>94/100</td>
+    </tr>
+    <tr>
+      <td>project-mobile.html</td>
+      <td>95/100</td>
+      <td>97/100</td>
+    </tr>
+    <tr>
+      <td>project-webperf.html</td>
+      <td>95/100</td>
+      <td>97/100</td>
+    </tr>
+    <tr>
+      <td>pizza.html</td>
+      <td>97/100</td>
+      <td>100/100</td>
+    </tr>
+  </tbody>
+</table>
 
-optimized images by using loss-less compression. Resized pizzeria.jpg from unnecessarily large size.
+<p>Find the optimized site <a href="http://fffplok.github.io/frontend-nanodegree-mobile-portfolio/">here</a>.</p>
 
-javascript:
--reduced the number of times the keyword var is used by placing declared variables in comma separated list.
--replaced querySelectorAll with getElementsByClassName
--replaced querySelector with getElementsById
--minified main.js to main.min.js
+## index.html
+
+* eliminated link to google fonts so there is no download of font
+* link to style.css replaced with style element in document head with declarations from style.css
+* link to print.css added attribute media="print" so it will only load for printing
+* scripts with src attribute given async to prevent render blocking
+
+## pizza.html
+
+I put all style information into the head of pizza.html. Any declarations from bootstrap-grid.css of anything not col-md-8 were eliminated as they were not used. Bootstrap declarations were minified and then the minified version of style.css was appended.
+
+Images were optimized using loss-less compression. pizzeria.jpg was resized from unnecessarily large size.
+
+<b>javascript, generally:</b>
+
+* reduced the number of times the keyword var is used by placing declared variables in comma separated list.
+* replaced querySelectorAll with getElementsByClassName
+* replaced querySelector with getElementsById
+* minified main.js to main.min.js
 
 
+<b>javascript, specific examples:</b>
 ### updatePositions
 
 This function moves the sliding background pizzas based on scroll position
 
 #### original
 
-* note use of document.querySelectorAll to obtain items
+* note use of querySelectorAll to obtain items
 * phase is calculated every time in loop
 
 ```javascript
@@ -38,7 +88,7 @@ function updatePositions() {
 
 #### refactored
 
-* items now obtained via document.getElementsByClassName
+* items now obtained via getElementsByClassName
 * minimized number of caculations
 * there are only 5 phases, calculate each just once and hold in phases array for quick access
 
@@ -65,7 +115,7 @@ Generates the sliding pizzas when the page loads.
 #### original
 
 * note 200 images will be used... more than needed to fill the viewport
-* document.querySelector is invoked every iteration of the loop
+* querySelector is invoked every iteration of the loop
 * there is a fractional width specified for each image
 
 ```javascript
@@ -89,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
 #### refactored
 
 * 4 rows of 8 columns of pizzas are visible - use 32 instead of 200
-* get container for the moving pizzas just once using document.getElementById
+* get container for the moving pizzas just once using getElementById
 * whole integer width makes it easier for browser to render image
 
 ```javascript
@@ -114,8 +164,8 @@ document.addEventListener('DOMContentLoaded', function() {
 resizePizzas(size) is called when the slider in the "Our Pizzas" section of the website moves.
 
 #### original
-* note use of document.querySelector and document.querySelectorAll
-* document.querySelectorAll invoked multiple times every iteration of loop in changePizzaSizes
+* note use of querySelector and querySelectorAll
+* querySelectorAll invoked multiple times every iteration of loop in changePizzaSizes
 
 ```javascript
 var resizePizzas = function(size) {
@@ -159,9 +209,9 @@ var resizePizzas = function(size) {
 ```
 
 #### refactored
-* in helper function changeSliderLabel, used document.getElementById to get the slider label element (saving to a variable not a performance optimization, but easier to read)
-* in determineDx, minimized use of variables, replaced document.querySelector with document.getElementById
-* in changePizzaSizes obtained an array of elements before looping named pizzaContainers using document.getElementsByClassName
+* in helper function changeSliderLabel, now uses getElementById to get the slider label element
+* in determineDx, minimized use of variables, replaced querySelector with getElementById
+* in changePizzaSizes obtained an array of elements before looping named pizzaContainers using getElementsByClassName
 * calculate new width just once
 * access each element by looping through pizzaContainers to assign the new width
 
